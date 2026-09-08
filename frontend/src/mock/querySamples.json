@@ -1,0 +1,664 @@
+[
+  {
+    "id": "C001",
+    "question": "2026 年 8 月的总销售额",
+    "sql": "SELECT SUM(paid_amount) AS sales FROM orders WHERE paid_at >= '2026-08-01' AND paid_at < '2026-09-01' AND paid_amount > 0",
+    "rows": [
+      {
+        "sales": 34475986.52
+      }
+    ],
+    "row_count": 1,
+    "duration_ms": 0,
+    "metric_keys": [
+      "sales_amount"
+    ],
+    "warnings": [],
+    "intent": "metric_query",
+    "chart_type": "kpi",
+    "chart_data": {
+      "categories": [],
+      "series": [
+        {
+          "name": "销售额",
+          "data": [
+            34475986.52
+          ]
+        }
+      ],
+      "unit": "元"
+    },
+    "nl_explanation": "2026 年 8 月的总销售额：销售额为 34,475,986.52元。"
+  },
+  {
+    "id": "C002",
+    "question": "2026 年 8 月的客单价",
+    "sql": "SELECT AVG(paid_amount) AS aov FROM orders WHERE paid_at >= '2026-08-01' AND paid_at < '2026-09-01' AND paid_amount > 0",
+    "rows": [
+      {
+        "aov": 8070.221563670413
+      }
+    ],
+    "row_count": 1,
+    "duration_ms": 0,
+    "metric_keys": [
+      "average_order_value"
+    ],
+    "warnings": [],
+    "intent": "metric_query",
+    "chart_type": "kpi",
+    "chart_data": {
+      "categories": [],
+      "series": [
+        {
+          "name": "客单价",
+          "data": [
+            8070.221563670413
+          ]
+        }
+      ],
+      "unit": "元"
+    },
+    "nl_explanation": "2026 年 8 月的客单价：客单价为 8,070.22元。"
+  },
+  {
+    "id": "C003",
+    "question": "最近一次快照中库存低于安全线的 SKU 数量",
+    "sql": "SELECT COUNT(*) AS cnt FROM inventory_snapshots WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM inventory_snapshots) AND quantity_available < reorder_level",
+    "rows": [
+      {
+        "cnt": 1458
+      }
+    ],
+    "row_count": 1,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "metric_query",
+    "chart_type": "kpi",
+    "chart_data": {
+      "categories": [],
+      "series": [
+        {
+          "name": "数量",
+          "data": [
+            1458
+          ]
+        }
+      ],
+      "unit": "个"
+    },
+    "nl_explanation": "最近一次快照中库存低于安全线的 SKU 数量：SKU 数量为 1,458个。"
+  },
+  {
+    "id": "C004",
+    "question": "2026 年上半年各月的销售额",
+    "sql": "SELECT strftime('%Y-%m', paid_at) AS ym, SUM(paid_amount) AS sales FROM orders WHERE paid_at >= '2026-01-01' AND paid_at < '2026-07-01' AND paid_amount > 0 GROUP BY ym ORDER BY ym",
+    "rows": [
+      {
+        "ym": "2026-01",
+        "sales": 34328506.15
+      },
+      {
+        "ym": "2026-02",
+        "sales": 30869541.94
+      },
+      {
+        "ym": "2026-03",
+        "sales": 35215997.48
+      },
+      {
+        "ym": "2026-04",
+        "sales": 33269648.57
+      },
+      {
+        "ym": "2026-05",
+        "sales": 33171431.02
+      },
+      {
+        "ym": "2026-06",
+        "sales": 32342552.39
+      }
+    ],
+    "row_count": 6,
+    "duration_ms": 0,
+    "metric_keys": [
+      "sales_amount"
+    ],
+    "warnings": [],
+    "intent": "trend",
+    "chart_type": "line",
+    "chart_data": {
+      "categories": [
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06"
+      ],
+      "series": [
+        {
+          "name": "销售额",
+          "data": [
+            34328506.15,
+            30869541.94,
+            35215997.48,
+            33269648.57,
+            33171431.02,
+            32342552.39
+          ]
+        }
+      ],
+      "unit": "元",
+      "dimension": "ym",
+      "dimension_label": "月份"
+    },
+    "nl_explanation": "销售额从 2026-01 的 34,328,506.15元 变化到 2026-06 的 32,342,552.39元。"
+  },
+  {
+    "id": "C005",
+    "question": "2026 年 8 月销量最高的品牌",
+    "sql": "SELECT oi.brand, SUM(oi.quantity) AS total_qty FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE o.paid_at >= '2026-08-01' AND o.paid_at < '2026-09-01' AND o.paid_amount > 0 GROUP BY oi.brand ORDER BY total_qty DESC LIMIT 1",
+    "rows": [
+      {
+        "brand": "Cedar",
+        "total_qty": 2123
+      }
+    ],
+    "row_count": 1,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "ranking",
+    "chart_type": "kpi",
+    "chart_data": {
+      "categories": [],
+      "series": [
+        {
+          "name": "销量",
+          "data": [
+            2123
+          ]
+        }
+      ],
+      "unit": "件"
+    },
+    "nl_explanation": "销量最多的是  Cedar（2,123件）。"
+  },
+  {
+    "id": "C006",
+    "question": "2026 年 Q3 各渠道销售额",
+    "sql": "SELECT channel, SUM(paid_amount) AS sales FROM orders WHERE paid_at >= '2026-07-01' AND paid_at < '2026-10-01' AND paid_amount > 0 GROUP BY channel ORDER BY sales DESC",
+    "rows": [
+      {
+        "channel": "门店",
+        "sales": 23433862.88
+      },
+      {
+        "channel": "电商平台",
+        "sales": 22733171.4
+      },
+      {
+        "channel": "小程序",
+        "sales": 22480588.83
+      }
+    ],
+    "row_count": 3,
+    "duration_ms": 0,
+    "metric_keys": [
+      "sales_amount"
+    ],
+    "warnings": [],
+    "intent": "comparison",
+    "chart_type": "pie",
+    "chart_data": {
+      "categories": [
+        "门店",
+        "电商平台",
+        "小程序"
+      ],
+      "series": [
+        {
+          "name": "销售额",
+          "data": [
+            23433862.88,
+            22733171.4,
+            22480588.83
+          ]
+        }
+      ],
+      "unit": "元",
+      "dimension": "channel",
+      "dimension_label": "渠道"
+    },
+    "nl_explanation": "3 个渠道中，门店（23,433,862.88元，占 34.1%）、电商平台（22,733,171.4元，占 33.1%）、小程序（22,480,588.83元，占 32.7%）。"
+  },
+  {
+    "id": "C007",
+    "question": "各等级客户数",
+    "sql": "SELECT customer_level, COUNT(*) AS cnt FROM customers GROUP BY customer_level ORDER BY cnt DESC",
+    "rows": [
+      {
+        "customer_level": "普通",
+        "cnt": 5529
+      },
+      {
+        "customer_level": "银卡",
+        "cnt": 2472
+      },
+      {
+        "customer_level": "金卡",
+        "cnt": 1496
+      },
+      {
+        "customer_level": "黑卡",
+        "cnt": 503
+      }
+    ],
+    "row_count": 4,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "comparison",
+    "chart_type": "pie",
+    "chart_data": {
+      "categories": [
+        "普通",
+        "银卡",
+        "金卡",
+        "黑卡"
+      ],
+      "series": [
+        {
+          "name": "数量",
+          "data": [
+            5529,
+            2472,
+            1496,
+            503
+          ]
+        }
+      ],
+      "unit": "个",
+      "dimension": "customer_level",
+      "dimension_label": "等级"
+    },
+    "nl_explanation": "4 个等级中，普通（5,529个，占 55.3%）、银卡（2,472个，占 24.7%）、金卡（1,496个，占 15.0%）、黑卡（503个，占 5.0%）。"
+  },
+  {
+    "id": "C008",
+    "question": "2026 年 8 月订单金额分布",
+    "sql": "SELECT CASE WHEN paid_amount < 100 THEN 'under_100' WHEN paid_amount < 500 THEN '100_500' WHEN paid_amount < 2000 THEN '500_2000' ELSE 'over_2000' END AS bucket, COUNT(*) AS cnt FROM orders WHERE paid_at >= '2026-08-01' AND paid_at < '2026-09-01' AND paid_amount > 0 GROUP BY bucket ORDER BY MIN(paid_amount)",
+    "rows": [
+      {
+        "bucket": "under_100",
+        "cnt": 9
+      },
+      {
+        "bucket": "100_500",
+        "cnt": 80
+      },
+      {
+        "bucket": "500_2000",
+        "cnt": 345
+      },
+      {
+        "bucket": "over_2000",
+        "cnt": 3838
+      }
+    ],
+    "row_count": 4,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "distribution",
+    "chart_type": "bar",
+    "chart_data": {
+      "categories": [
+        "under_100",
+        "100_500",
+        "500_2000",
+        "over_2000"
+      ],
+      "series": [
+        {
+          "name": "数量",
+          "data": [
+            9,
+            80,
+            345,
+            3838
+          ]
+        }
+      ],
+      "unit": "个",
+      "dimension": "bucket",
+      "dimension_label": "bucket"
+    },
+    "nl_explanation": "over_2000 区间占比最高（3,838个，占 89.8%）；共 4 个区间。"
+  },
+  {
+    "id": "C009",
+    "question": "最近一次快照各门店缺货 SKU 数",
+    "sql": "SELECT store_id, COUNT(*) AS sku_count FROM inventory_snapshots WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM inventory_snapshots) AND quantity_available = 0 GROUP BY store_id ORDER BY sku_count DESC",
+    "rows": [
+      {
+        "store_id": 19,
+        "sku_count": 10
+      },
+      {
+        "store_id": 5,
+        "sku_count": 10
+      },
+      {
+        "store_id": 15,
+        "sku_count": 9
+      },
+      {
+        "store_id": 7,
+        "sku_count": 9
+      },
+      {
+        "store_id": 1,
+        "sku_count": 9
+      },
+      {
+        "store_id": 17,
+        "sku_count": 8
+      },
+      {
+        "store_id": 3,
+        "sku_count": 8
+      },
+      {
+        "store_id": 2,
+        "sku_count": 8
+      },
+      {
+        "store_id": 20,
+        "sku_count": 7
+      },
+      {
+        "store_id": 16,
+        "sku_count": 7
+      },
+      {
+        "store_id": 18,
+        "sku_count": 6
+      },
+      {
+        "store_id": 9,
+        "sku_count": 6
+      },
+      {
+        "store_id": 14,
+        "sku_count": 5
+      },
+      {
+        "store_id": 13,
+        "sku_count": 5
+      },
+      {
+        "store_id": 11,
+        "sku_count": 5
+      },
+      {
+        "store_id": 6,
+        "sku_count": 5
+      },
+      {
+        "store_id": 8,
+        "sku_count": 4
+      },
+      {
+        "store_id": 4,
+        "sku_count": 4
+      },
+      {
+        "store_id": 12,
+        "sku_count": 3
+      },
+      {
+        "store_id": 10,
+        "sku_count": 3
+      }
+    ],
+    "row_count": 20,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "ranking",
+    "chart_type": "bar",
+    "chart_data": {
+      "categories": [
+        19,
+        5,
+        15,
+        7,
+        1,
+        17,
+        3,
+        2,
+        20,
+        16,
+        18,
+        9,
+        14,
+        13,
+        11,
+        6,
+        8,
+        4,
+        12,
+        10
+      ],
+      "series": [
+        {
+          "name": "SKU 数",
+          "data": [
+            10,
+            10,
+            9,
+            9,
+            9,
+            8,
+            8,
+            8,
+            7,
+            7,
+            6,
+            6,
+            5,
+            5,
+            5,
+            5,
+            4,
+            4,
+            3,
+            3
+          ]
+        }
+      ],
+      "unit": "件",
+      "dimension": "store_id",
+      "dimension_label": "门店"
+    },
+    "nl_explanation": "SKU 数最多的是 门店 19（10件）。"
+  },
+  {
+    "id": "C010",
+    "question": "各等级客户城市分布",
+    "sql": "SELECT customer_level, city, COUNT(*) AS cnt FROM customers GROUP BY customer_level, city ORDER BY customer_level, cnt DESC",
+    "rows": [
+      {
+        "customer_level": "普通",
+        "city": "成都",
+        "cnt": 726
+      },
+      {
+        "customer_level": "普通",
+        "city": "长沙",
+        "cnt": 721
+      },
+      {
+        "customer_level": "普通",
+        "city": "北京",
+        "cnt": 717
+      },
+      {
+        "customer_level": "普通",
+        "city": "广州",
+        "cnt": 711
+      },
+      {
+        "customer_level": "普通",
+        "city": "杭州",
+        "cnt": 694
+      },
+      {
+        "customer_level": "普通",
+        "city": "武汉",
+        "cnt": 679
+      },
+      {
+        "customer_level": "普通",
+        "city": "西安",
+        "cnt": 672
+      },
+      {
+        "customer_level": "普通",
+        "city": "深圳",
+        "cnt": 609
+      },
+      {
+        "customer_level": "金卡",
+        "city": "成都",
+        "cnt": 203
+      },
+      {
+        "customer_level": "金卡",
+        "city": "西安",
+        "cnt": 202
+      },
+      {
+        "customer_level": "金卡",
+        "city": "北京",
+        "cnt": 199
+      },
+      {
+        "customer_level": "金卡",
+        "city": "深圳",
+        "cnt": 183
+      },
+      {
+        "customer_level": "金卡",
+        "city": "杭州",
+        "cnt": 182
+      },
+      {
+        "customer_level": "金卡",
+        "city": "武汉",
+        "cnt": 179
+      },
+      {
+        "customer_level": "金卡",
+        "city": "广州",
+        "cnt": 178
+      },
+      {
+        "customer_level": "金卡",
+        "city": "长沙",
+        "cnt": 170
+      },
+      {
+        "customer_level": "银卡",
+        "city": "杭州",
+        "cnt": 326
+      },
+      {
+        "customer_level": "银卡",
+        "city": "成都",
+        "cnt": 323
+      },
+      {
+        "customer_level": "银卡",
+        "city": "北京",
+        "cnt": 318
+      },
+      {
+        "customer_level": "银卡",
+        "city": "长沙",
+        "cnt": 317
+      },
+      {
+        "customer_level": "银卡",
+        "city": "武汉",
+        "cnt": 316
+      },
+      {
+        "customer_level": "银卡",
+        "city": "西安",
+        "cnt": 302
+      },
+      {
+        "customer_level": "银卡",
+        "city": "广州",
+        "cnt": 298
+      },
+      {
+        "customer_level": "银卡",
+        "city": "深圳",
+        "cnt": 272
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "长沙",
+        "cnt": 68
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "武汉",
+        "cnt": 68
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "西安",
+        "cnt": 67
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "成都",
+        "cnt": 67
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "杭州",
+        "cnt": 62
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "广州",
+        "cnt": 60
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "北京",
+        "cnt": 56
+      },
+      {
+        "customer_level": "黑卡",
+        "city": "深圳",
+        "cnt": 55
+      }
+    ],
+    "row_count": 32,
+    "duration_ms": 0,
+    "metric_keys": [],
+    "warnings": [],
+    "intent": "table",
+    "chart_type": "table",
+    "chart_data": null,
+    "nl_explanation": "共 32 条记录，涵盖 等级、城市、数量。"
+  }
+]

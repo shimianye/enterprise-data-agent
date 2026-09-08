@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------- global */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Helvetica Neue Light', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #faf8f5;
+  color: #2d3a2e;
+}
+
+/* ------------------------------------------------------------ animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up   { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-down { animation: fade-down 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 240ms; }
+.stagger-4 { animation-delay: 360ms; }
+.stagger-5 { animation-delay: 480ms; }
+.stagger-6 { animation-delay: 600ms; }
+
+@layer components {
+  .card {
+    @apply bg-white border border-brand-dark/10 rounded-2xl;
+    box-shadow: 0 1px 2px rgba(45, 58, 46, .04), 0 8px 24px rgba(45, 58, 46, .05);
+  }
+  .badge {
+    @apply text-xs text-brand-dark/70 bg-brand-light rounded-full px-2.5 py-1;
+  }
+  .chip {
+    @apply text-[12.5px] text-brand-dark bg-white border border-brand-dark/15 rounded-full px-3 py-1.5;
+    @apply hover:border-brand-green hover:text-brand-green transition-colors;
+  }
+  .chip-on { @apply bg-brand-dark border-brand-dark text-white hover:text-white; }
+  .pill-link {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-dark/15;
+    @apply bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-colors;
+  }
+  .btn-dark {
+    @apply inline-flex items-center px-5 py-2.5 bg-brand-dark text-white text-sm tracking-wide;
+    @apply uppercase rounded-full hover:bg-brand-green transition-colors;
+  }
+}
+
+/* 表格与 SQL 折叠沿用编辑感的细线 */
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { border-bottom: 1px solid rgba(45, 58, 46, .1); padding: 8px 10px; text-align: left; white-space: nowrap; }
+th { color: rgba(45, 58, 46, .55); font-weight: 500; letter-spacing: .02em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+pre.sql {
+  background: #2d3a2e; color: #e7ede7; border-radius: 10px; padding: 12px;
+  overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; line-height: 1.6; margin-top: 10px;
+}
+
+details.fold > summary { cursor: pointer; list-style: none; user-select: none; color: rgba(45, 58, 46, .7); font-size: 13.5px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary:before { content: "▸ "; color: rgba(45, 58, 46, .45); }
+details.fold[open] > summary:before { content: "▾ "; }
+
+.skeleton {
+  height: 300px; border-radius: 12px;
+  background: linear-gradient(90deg, #f5f3ef 25%, #eceae4 37%, #f5f3ef 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+@keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
