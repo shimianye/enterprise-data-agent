@@ -155,6 +155,18 @@ npm run dev          # http://127.0.0.1:5173，/api 已代理到 8000
 后端未启动时，前端自动降级为内置真实响应样例，仍可演示 KPI / 折线 / 柱状 / 饼图 / 表格 5 种形态。
 详见 `frontend/README.md` 与 `docs/collab/frontend-spec.md`。
 
+### 页面效果
+
+| KPI 指标 | 月度趋势 |
+|---|---|
+| ![KPI 查询结果](docs/screenshots/query-kpi.png) | ![月度销售趋势](docs/screenshots/query-line.png) |
+
+| 渠道占比 | 门店缺货排行 |
+|---|---|
+| ![渠道销售占比](docs/screenshots/query-pie.png) | ![门店缺货排行](docs/screenshots/query-ranking.png) |
+
+表格明细与移动端适配见 [表格截图](docs/screenshots/query-table.png) 和 [移动端截图](docs/screenshots/query-mobile.png)。
+
 ---
 
 ## 目录结构（实际）

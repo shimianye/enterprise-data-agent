@@ -13,6 +13,7 @@ LABELS = {
     "customer_count": "客户数", "cnt": "数量", "aov": "客单价",
     "profit": "利润", "total_profit": "利润", "refund_amount": "退款金额",
     "avg_hours": "平均时长", "avg_resolution_hours": "平均时长", "sku_count": "SKU 数",
+    "stockout_sku_count": "缺货 SKU 数",
 }
 
 DIMENSION_LABELS = {"store_id":"门店", "city":"城市", "customer_level":"等级", "channel":"渠道", "brand":"品牌", "category":"类目", "ticket_status":"工单状态", "ticket_type":"工单类型", "refund_reason":"退款原因", "ym":"月份", "yweek":"周", "week":"周"}
@@ -23,7 +24,7 @@ def column_label(name: str) -> str:
 UNITS = {
     "sales": "元", "sales_amount": "元", "total_sales": "元", "aov": "元",
     "profit": "元", "total_profit": "元", "refund_amount": "元",
-    "total_qty": "件", "quantity": "件", "sku_count": "件",
+    "total_qty": "件", "quantity": "件", "sku_count": "件", "stockout_sku_count": "件",
     "order_count": "单", "customer_count": "人", "cnt": "个",
     "avg_hours": "小时", "avg_resolution_hours": "小时",
 }
