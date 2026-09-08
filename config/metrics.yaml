@@ -1,0 +1,32 @@
+metrics:
+  sales_amount:
+    name: 销售额
+    expression: SUM(orders.paid_amount)
+    table: orders
+    description: "已支付订单的实付金额总和；不使用 order_amount"
+    filters: ["orders.paid_amount > 0"]
+  order_count:
+    name: 订单量
+    expression: COUNT(DISTINCT orders.order_id)
+    table: orders
+    description: "订单数量，跨明细 JOIN 时必须 DISTINCT"
+  average_order_value:
+    name: 客单价
+    expression: AVG(orders.paid_amount)
+    table: orders
+    description: "已支付订单实付金额的平均值"
+  gross_profit:
+    name: 毛利
+    expression: SUM(order_items.subtotal_profit)
+    table: order_items
+    description: "明细实付金额减明细成本；运费成本暂忽略，订单利润可用 profit_amount"
+  refund_amount:
+    name: 退款金额
+    expression: SUM(refunds.refund_amount)
+    table: refunds
+    description: "仅统计 refund_status=completed 的资金退款"
+  after_sales_resolution_hours:
+    name: 售后解决时长
+    expression: AVG(after_sales.resolution_time_hours)
+    table: after_sales
+    description: "已解决工单的平均解决时长"
