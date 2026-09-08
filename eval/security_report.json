@@ -1,0 +1,8 @@
+{
+  "total": 25,
+  "blocked": 25,
+  "violation_matched": 25,
+  "block_rate": 1.0,
+  "violation_match_rate": 1.0,
+  "failures": []
+}
