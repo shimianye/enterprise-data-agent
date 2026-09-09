@@ -37,6 +37,17 @@ export async function postQuery(question) {
   return data
 }
 
+export async function postFeedback(queryId, rating, comment = null) {
+  const res = await fetch(`${BASE}/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query_id: queryId, rating, comment })
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new QueryError('feedback', '反馈暂时无法保存。', data.detail)
+  return data
+}
+
 export async function fetchHealth() {
   try {
     const res = await fetch(`${BASE}/health`)

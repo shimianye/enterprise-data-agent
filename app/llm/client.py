@@ -13,6 +13,7 @@ except ImportError:
 
 class LLMClient(Protocol):
     def generate_sql(self, question: str, context: str) -> str: ...
+    def repair_sql(self, question: str, context: str, previous_sql: str, error: str) -> str: ...
 
 class MockLLMClient:
     def __init__(self, cases_path: str):
@@ -23,6 +24,8 @@ class MockLLMClient:
         if question not in self.cases:
             raise ValueError("mock model has no golden SQL for this question")
         return self.cases[question]
+    def repair_sql(self, question: str, context: str, previous_sql: str, error: str) -> str:
+        return self.generate_sql(question, context)
 
 class OpenAICompatibleClient:
     def __init__(self, api_key: str | None = None, base_url: str | None = None, model: str | None = None, timeout: float = 60):
@@ -32,6 +35,12 @@ class OpenAICompatibleClient:
         self.timeout = timeout
         if not self.api_key:
             raise ValueError("LLM_API_KEY is required for the real provider")
+
+    def _request_sql(self, system: str, prompt: str) -> str:
+        response = httpx.post(self.base_url + "/v1/chat/completions", headers={"Authorization": f"Bearer {self.api_key}"}, json={"model": self.model, "temperature": 0, "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}]}, timeout=self.timeout)
+        response.raise_for_status()
+        content = response.json()["choices"][0]["message"]["content"].strip()
+        return re.sub(r"^```(?:sql)?\s*|\s*```$", "", content, flags=re.I).strip()
 
     def generate_sql(self, question: str, context: str) -> str:
         system = (
@@ -61,8 +70,16 @@ class OpenAICompatibleClient:
             "Q: 2026 年 8 月的退款处理平均时长（天数）\nSQL: SELECT AVG(julianday(completed_at) - julianday(requested_at)) AS avg_days FROM refunds WHERE completed_at >= '2026-08-01' AND completed_at < '2026-09-01' AND refund_status = 'completed' AND completed_at IS NOT NULL AND requested_at IS NOT NULL\n"
         )
         prompt = f"{context}\n\nQuestion: {question}"
-        response = httpx.post(self.base_url + "/v1/chat/completions", headers={"Authorization": f"Bearer {self.api_key}"}, json={"model": self.model, "temperature": 0, "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}]}, timeout=self.timeout)
-        response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"].strip()
-        content = re.sub(r"^```(?:sql)?\s*|\s*```$", "", content, flags=re.I).strip()
-        return content
+        return self._request_sql(system, prompt)
+
+    def repair_sql(self, question: str, context: str, previous_sql: str, error: str) -> str:
+        system = (
+            "You repair one SQLite read-only query. Return exactly one SELECT or WITH statement. "
+            "No markdown or explanation. The repaired query must use only the supplied schema and "
+            "must address the machine-readable validation or execution error."
+        )
+        prompt = (
+            f"{context}\n\nQuestion: {question}\nPrevious SQL: {previous_sql}\n"
+            f"Failure: {error}\nReturn the repaired SQL only."
+        )
+        return self._request_sql(system, prompt)

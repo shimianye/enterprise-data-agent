@@ -420,6 +420,8 @@ def build_llm(mode: str, cases_path: Path) -> LLMClient:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Text2SQL 评测")
     parser.add_argument("--db", default=str(PROJECT_ROOT / "data" / "enterprise.db"))
     parser.add_argument("--cases", default=str(PROJECT_ROOT / "eval" / "cases.jsonl"))

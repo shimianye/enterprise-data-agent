@@ -1,6 +1,6 @@
 # 企业经营数据分析 Agent（Enterprise Data Analysis Agent）
 
-> 基于 LLM 的 NL2SQL 经营分析系统。用户用自然语言提问，系统自动生成 SQL、查询 SQLite 数据库、按安全规则校验后返回结果。
+> 基于 LLM 的 NL2SQL 经营分析系统。用户用自然语言提问，系统生成并安全执行 SQL，同时返回图表、质量检查等级与人工复核提示；结构性失败最多受控修复一次，用户反馈进入待审核数据闭环。
 
 **简历定位**：与 `phone-commerce-agent`（业务执行 Agent）形成互补——一个走业务流程，一个走数据洞察。
 
@@ -58,8 +58,11 @@
 | **Schema 语义检索（Catalog）** | jieba 中文分词 + 关键表保留 + 字段表名注入 prompt | `app/catalog/schema.py`, `app/catalog/descriptions.py` |
 | **Text2SQL 生成** | OpenAI-compatible LLM（DeepSeek/OpenAI），Prompt 15 条硬规则 + 6 条 Few-shot，temperature=0 | `app/llm/client.py` |
 | **SQL 安全校验** | SQLGlot AST 5 道关卡：只读/表白名单/危险函数/LIMIT 钳制/集合运算，详见 `docs/sql_safety.md` | `app/security/validator.py` |
-| **执行链路** | SQLite 只读连接（PRAGMA query_only），端到端编排：Glossary → Catalog → LLM → 安全 → 执行 | `app/agent/query_service.py` |
-| **FastAPI 接口** | `/api/health` + `/api/query`，错误统一映射（400/422/502），详见 `docs/collab/interface-contract.md` | `app/api/app.py` |
+| **受控修复** | 只对 SQL 校验或数据库执行错误修复一次；修复 SQL 必须重新经过完整安全校验 | `app/agent/query_service.py`, `app/llm/client.py` |
+| **质量等级** | 基于指标命中、结果形状、空结果、高难模式和安全改写生成透明检查项；不是模型自报概率 | `app/agent/quality.py` |
+| **反馈闭环** | 查询快照写入独立 SQLite 侧库；正确/不正确反馈经人工审核后才可进入评测候选 | `app/feedback/store.py` |
+| **执行链路** | 业务库使用 SQLite 只读连接（PRAGMA query_only），反馈与业务 Schema 隔离 | `app/agent/query_service.py`, `app/db/sqlite.py` |
+| **FastAPI 接口** | `/api/health`、`/api/query`、`/api/feedback`，错误统一映射 | `app/api/app.py` |
 | **评测闭环** | 80 业务题 + 25 安全题，6 维指标（可执行/结构/列名/行数/结果/安全） | `eval/run_eval.py`, `eval/run_security_eval.py` |
 
 ---
@@ -74,7 +77,7 @@
 | SQL 解析 | sqlglot 30.18 | AST 校验 + 多方言支持 |
 | 中文分词 | jieba | Schema 召回用 |
 | 环境变量 | python-dotenv | 按项目根加载 |
-| 测试 | pytest | 66 passed（`pytest -q`，`pytest.ini` 已限定 `testpaths=tests`）|
+| 测试 | pytest | 73 passed（`pytest -q`，含质量等级、受控修复、反馈 API 与安全回归）|
 
 ---
 

@@ -7,7 +7,8 @@ import KpiCard from './components/KpiCard.vue'
 import ChartPanel from './components/ChartPanel.vue'
 import ResultTable from './components/ResultTable.vue'
 import SqlPanel from './components/SqlPanel.vue'
-import { fetchHealth, postQuery } from './api.js'
+import QualityPanel from './components/QualityPanel.vue'
+import { fetchHealth, postFeedback, postQuery } from './api.js'
 import samples from './mock/querySamples.json'
 
 const links = [
@@ -23,6 +24,8 @@ const error = ref(null)
 const activeIndex = ref(0)
 const backend = ref('检测中…')
 const backendOnline = ref(false)
+const feedbackState = ref('idle')
+const selectedRating = ref('')
 
 async function detectBackend() {
   const h = await fetchHealth()
@@ -32,7 +35,21 @@ async function detectBackend() {
 
 function render(data) {
   result.value = data
+  feedbackState.value = 'idle'
+  selectedRating.value = ''
   status.value = (data.rows || []).length ? 'success' : 'empty'
+}
+
+async function rate(rating) {
+  if (!result.value?.query_id || feedbackState.value === 'saving') return
+  feedbackState.value = 'saving'
+  try {
+    await postFeedback(result.value.query_id, rating)
+    selectedRating.value = rating
+    feedbackState.value = 'saved'
+  } catch {
+    feedbackState.value = 'error'
+  }
 }
 
 async function ask(q) {
@@ -105,10 +122,23 @@ onMounted(detectBackend)
 
       <section v-else-if="status === 'empty'" class="card p-6 md:p-8">
         <p class="text-center text-brand-dark/60 py-10">{{ result?.nl_explanation || '未查询到符合条件的数据。' }}</p>
+        <QualityPanel
+          v-if="result"
+          :result="result"
+          :feedback-state="feedbackState"
+          :selected-rating="selectedRating"
+          @rate="rate"
+        />
       </section>
 
       <section v-else-if="result" class="card p-6 md:p-8">
         <Conclusion :result="result" />
+        <QualityPanel
+          :result="result"
+          :feedback-state="feedbackState"
+          :selected-rating="selectedRating"
+          @rate="rate"
+        />
         <div class="mt-6">
           <KpiCard v-if="result.chart_type === 'kpi'" :key="result.question" :result="result" />
           <ChartPanel v-else-if="result.chart_data" :key="result.question" :result="result" />
