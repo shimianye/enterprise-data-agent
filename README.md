@@ -63,7 +63,7 @@
 | **质量等级** | 基于指标命中、结果形状、空结果、高难模式和安全改写生成透明检查项；不是模型自报概率 | `app/agent/quality.py` |
 | **反馈闭环** | 查询快照写入独立 SQLite 侧库；正确/不正确反馈经人工审核后才可进入评测候选 | `app/feedback/store.py` |
 | **执行链路** | 业务库使用 SQLite 只读连接（PRAGMA query_only），反馈与业务 Schema 隔离 | `app/agent/query_service.py`, `app/db/sqlite.py` |
-| **FastAPI 接口** | `/api/health`、`/api/query`、`/api/feedback`，错误统一映射 | `app/api/app.py` |
+| **FastAPI 接口** | `/api/health`、`/api/query`、`/api/feedback`、`/api/feedback/summary`，错误统一映射 | `app/api/app.py` |
 | **评测闭环** | 80 业务题 + 25 安全题，6 维指标（可执行/结构/列名/行数/结果/安全） | `eval/run_eval.py`, `eval/run_security_eval.py` |
 
 ---
@@ -78,7 +78,7 @@
 | SQL 解析 | sqlglot 30.18 | AST 校验 + 多方言支持 |
 | 中文分词 | jieba | Schema 召回用 |
 | 环境变量 | python-dotenv | 按项目根加载 |
-| 测试 | pytest | 73 passed（`pytest -q`，含质量等级、受控修复、反馈 API 与安全回归）|
+| 测试 | pytest | 74 passed（`pytest -q`，含质量等级、受控修复、反馈 API、反馈摘要与安全回归）|
 
 ---
 

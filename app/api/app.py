@@ -62,4 +62,12 @@ def create_app(db_path: str | Path | None = None, cases_path: str | Path | None 
             return {"ok": True, "query_id": request.query_id, "rating": request.rating}
         except sqlite3.Error as exc:
             raise HTTPException(503, detail={"error": "feedback_store_error"}) from exc
+
+    @app.get("/api/feedback/summary")
+    def feedback_summary():
+        """Return aggregate feedback metrics for an admin dashboard."""
+        try:
+            return feedback.summary()
+        except sqlite3.Error as exc:
+            raise HTTPException(503, detail={"error": "feedback_store_error"}) from exc
     return app

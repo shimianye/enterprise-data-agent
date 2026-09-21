@@ -55,3 +55,27 @@ def test_feedback_rejects_unknown_query_and_invalid_rating(tmp_path):
         json={"query_id": "missing-query", "rating": "maybe"},
     )
     assert invalid.status_code == 422
+
+
+def test_feedback_summary_exposes_aggregates_only(tmp_path):
+    database = tmp_path / "business.db"
+    feedback = tmp_path / "feedback.db"
+    _database(database)
+    client = TestClient(create_app(database, ROOT / "eval/cases.jsonl", feedback))
+
+    query = client.post("/api/query", json={"question": "2026 年 8 月的总销售额"})
+    query_id = query.json()["query_id"]
+    client.post(
+        "/api/feedback",
+        json={"query_id": query_id, "rating": "correct", "comment": "ok"},
+    )
+
+    response = client.get("/api/feedback/summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total_queries"] == 1
+    assert payload["reviewed_queries"] == 1
+    assert payload["review_accuracy"] == 1.0
+    assert payload["confidence_distribution"] == {"high": 1}
+    assert "question" not in payload
+    assert "sql" not in payload

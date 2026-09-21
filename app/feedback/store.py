@@ -75,3 +75,45 @@ class FeedbackStore:
                 "SELECT * FROM query_feedback WHERE query_id = ?", (query_id,)
             ).fetchone()
             return dict(row) if row else None
+
+    def summary(self) -> dict[str, Any]:
+        """Return a compact, dashboard-safe summary of query feedback.
+
+        The store intentionally exposes aggregates only.  Query text and SQL are
+        kept out of this response so the endpoint can be used by an admin panel
+        without accidentally rendering business data in a metrics card.
+        """
+        with self._connect() as connection:
+            total = connection.execute(
+                "SELECT COUNT(*) FROM query_feedback"
+            ).fetchone()[0]
+            reviewed = connection.execute(
+                "SELECT COUNT(*) FROM query_feedback WHERE rating IS NOT NULL"
+            ).fetchone()[0]
+            correct = connection.execute(
+                "SELECT COUNT(*) FROM query_feedback WHERE rating = 'correct'"
+            ).fetchone()[0]
+            incorrect = connection.execute(
+                "SELECT COUNT(*) FROM query_feedback WHERE rating = 'incorrect'"
+            ).fetchone()[0]
+            confidence_rows = connection.execute(
+                """
+                SELECT confidence, COUNT(*) AS count
+                FROM query_feedback
+                GROUP BY confidence
+                ORDER BY confidence
+                """
+            ).fetchall()
+
+        accuracy = correct / reviewed if reviewed else None
+        return {
+            "total_queries": total,
+            "reviewed_queries": reviewed,
+            "unreviewed_queries": total - reviewed,
+            "correct": correct,
+            "incorrect": incorrect,
+            "review_accuracy": accuracy,
+            "confidence_distribution": {
+                row["confidence"]: row["count"] for row in confidence_rows
+            },
+        }
