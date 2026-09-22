@@ -67,6 +67,13 @@ class OpenAICompatibleClient:
             "19. For month-over-month or year-over-year questions, return the requested difference/rate column only. Use two explicitly filtered CTEs or scalar subqueries when the question asks for a comparison; do not return separate month columns.\n"
             "20. For inventory value or category inventory, join inventory_snapshots to products for product cost/category. Never join order_items as a substitute for products. For promotion names/types, join orders to promotions.\n"
             "21. Use * 1.0 for every ratio or percentage to avoid SQLite integer division. Do not append LIMIT 1000 when the requested shape already defines the result or when it changes a scalar result.\n"
+            "22. Geographic store questions (city, region, store) MUST join stores on orders.store_id; customer city is a different dimension and must not be used as a store filter.\n"
+            "23. Inventory top-N asks for the raw quantity_on_hand row and uses ORDER BY quantity_on_hand DESC; average available inventory asks for product_id, AVG(quantity_available) AS avg_available GROUP BY product_id.\n"
+            "24. Refund reason distribution questions such as '最常见' or '各退款原因占比' use COUNT(*) AS cnt grouped by refund_reason under the stated refund time/status filters; refund amount rate is a different question.\n"
+            "25. After-sales status values are database enums resolved, closed, and open. A resolution rate counts both resolved and closed.\n"
+            "26. Customer new/old questions use customers.registered_at when the wording refers to new customers; do not infer newness from first order unless explicitly requested.\n"
+            "27. Promotion ROI is (SUM(orders.paid_amount) - SUM(orders.discount_amount)) * 1.0 / NULLIF(SUM(orders.discount_amount), 0) AS roi, grouped by promotions.promotion_type.\n"
+            "28. A refund-related after-sales ticket rate is computed over after_sales rows and tests EXISTS refunds by matching order_id; do not use paid orders as the denominator.\n"
             "Examples:\n"
             "Q: 2026 年 8 月的总销售额\nSQL: SELECT SUM(paid_amount) AS sales FROM orders WHERE paid_at >= '2026-08-01' AND paid_at < '2026-09-01' AND paid_amount > 0\n"
             "Q: 金卡及以上等级客户占比\nSQL: SELECT SUM(CASE WHEN customer_level IN ('金卡', '铂金') THEN 1 ELSE 0 END) / COUNT(*) AS ratio FROM customers\n"
@@ -77,6 +84,8 @@ class OpenAICompatibleClient:
             "Q: 2026 年 8 月各门店利润\nSQL: SELECT o.store_id, SUM(oi.subtotal_profit) AS profit FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE o.paid_at >= '2026-08-01' AND o.paid_at < '2026-09-01' AND o.paid_amount > 0 GROUP BY o.store_id ORDER BY profit DESC\n"
             "Q: 2026 年 8 月各门店销售额环比 7 月\nSQL: SELECT o.store_id, SUM(CASE WHEN o.paid_at >= '2026-08-01' AND o.paid_at < '2026-09-01' THEN o.paid_amount ELSE 0 END) - SUM(CASE WHEN o.paid_at >= '2026-07-01' AND o.paid_at < '2026-08-01' THEN o.paid_amount ELSE 0 END) AS mom_growth FROM orders o WHERE o.paid_at >= '2026-07-01' AND o.paid_at < '2026-09-01' AND o.paid_amount > 0 GROUP BY o.store_id ORDER BY mom_growth DESC\n"
             "Q: 2026 年 8 月客单价分段客户数\nSQL: SELECT CASE WHEN avg_aov < 100 THEN '0_100' WHEN avg_aov < 500 THEN '100_500' WHEN avg_aov < 2000 THEN '500_2000' ELSE '2000_plus' END AS bucket, COUNT(*) AS cnt FROM (SELECT customer_id, AVG(paid_amount) AS avg_aov FROM orders WHERE paid_at >= '2026-08-01' AND paid_at < '2026-09-01' AND paid_amount > 0 GROUP BY customer_id) t GROUP BY bucket\n"
+            "Q: 2026 年 8 月各品类退款率\nSQL: SELECT t.category, SUM(CASE WHEN t.refund_amount IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS refund_rate FROM (SELECT oi.category, r.refund_amount FROM order_items oi JOIN orders o ON oi.order_id = o.order_id LEFT JOIN refunds r ON r.order_id = o.order_id AND r.refund_status = 'completed' AND r.completed_at >= '2026-08-01' AND r.completed_at < '2026-09-01' WHERE o.paid_at >= '2026-08-01' AND o.paid_at < '2026-09-01' AND o.paid_amount > 0) t GROUP BY t.category ORDER BY refund_rate DESC\n"
+            "Q: 2026 年 8 月涉及退款的工单占比\nSQL: SELECT SUM(CASE WHEN EXISTS (SELECT 1 FROM refunds r WHERE r.order_id = a.order_id AND r.refund_status = 'completed' AND r.completed_at >= '2026-08-01' AND r.completed_at < '2026-09-01') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS refund_ticket_ratio FROM after_sales a WHERE a.created_at >= '2026-08-01' AND a.created_at < '2026-09-01'\n"
         )
         prompt = f"{context}\n\nQuestion: {question}"
         return self._request_sql(system, prompt)
