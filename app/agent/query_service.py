@@ -13,6 +13,7 @@ from app.security.validator import SQLValidationError, check_sql_safety
 from app.agent.explanation import explain
 from app.agent.presentation import build_presentation, column_label
 from app.agent.quality import assess_query_quality
+from app.agent.result_validation import validate_result
 
 @dataclass
 class QueryResult:
@@ -32,6 +33,7 @@ class QueryResult:
     confidence: str
     needs_review: bool
     quality_checks: list[dict[str, Any]]
+    result_status: str
     def to_dict(self): return asdict(self)
 
 class QueryService:
@@ -95,6 +97,8 @@ class QueryService:
             rows=rows,
             intent=intent,
         )
+        result_status, result_warnings = validate_result(question, rows, intent)
+        warnings = list(safety.warnings) + result_warnings
         return QueryResult(
             query_id=uuid.uuid4().hex,
             question=question,
@@ -102,7 +106,7 @@ class QueryService:
             rows=rows,
             duration_ms=int((perf_counter() - started) * 1000),
             metric_keys=metric_keys,
-            warnings=safety.warnings,
+            warnings=warnings,
             intent=intent,
             chart_type=chart_type,
             chart_data=chart_data,
@@ -112,4 +116,5 @@ class QueryService:
             confidence=quality.confidence,
             needs_review=quality.needs_review,
             quality_checks=quality.checks_as_dicts(),
+            result_status=result_status,
         )
